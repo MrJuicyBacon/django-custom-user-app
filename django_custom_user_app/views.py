@@ -16,6 +16,9 @@ def create_response(input_object, status_code=200, content_type="application/jso
 @csrf_exempt
 @require_POST
 def auth(request):
+    # Check if already have valid auth_token
+    if request.custom_user is not None:
+        return create_response({'error': 'You already have valid auth_token.'}, 400)
     # Check if all fields are present
     if not ('email' in request.POST and 'password' in request.POST):
         return create_response({'error': '"email" and "password" fields are required.'}, 400)
