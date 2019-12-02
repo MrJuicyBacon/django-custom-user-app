@@ -1,9 +1,12 @@
 import json
+from uuid import uuid4
+from datetime import date, timedelta
+from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth.hashers import check_password
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, Session as DbSession
+from .models import User, Token, Session as DbSession
 
 
 def create_response(input_object, status_code=200, content_type="application/json"):
@@ -26,9 +29,16 @@ def auth(request):
     if check_password(request.POST['password'], user.password) is not True:
         return create_response({'error': 'Wrong password.'}, 400)
 
-    # All checks passed, creating a response
+    # All checks passed, creating token and response
+    token = str(uuid4())
+    expire_in_days = getattr(settings, 'AUTH_TOKEN_EXPIRE_IN_DAYS', 30)
+    expire_date = date.today() + timedelta(days=expire_in_days)
+    token_object = Token(token=token, user=user, expire=expire_date)
+    DbSession.add(token_object)
+    DbSession.commit()
     response_data = {
         'user': user.as_dict(),
-        'auth_token': None,
+        'auth_token': token,
     }
+
     return create_response(response_data)
