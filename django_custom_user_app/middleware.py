@@ -1,3 +1,4 @@
+from datetime import date
 from .models import User, Token, Session as DbSession
 
 
@@ -16,14 +17,12 @@ class AuthMiddleware:
         else:
             auth_token = request.GET.get('auth_token')
 
-        # Assign user if exists
+        # Assign user if exists and expiry date did not pass
         user = None
         if auth_token is not None:
             token_object = DbSession.query(Token).join(User).filter(Token.token == auth_token).first()
-            try:
+            if token_object is not None and token_object.expire >= date.today():
                 user = token_object.user
-            except AttributeError:
-                pass
         request.custom_user = user
 
         response = self.get_response(request)
