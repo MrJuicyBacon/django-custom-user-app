@@ -70,7 +70,7 @@ class Token(Base):
     __tablename__ = 'token'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    token = Column(String(50))
-    user_id = Column(ForeignKey('user.id'))
+    token = Column(String(50), nullable=False)
+    user_id = Column(ForeignKey('user.id'), nullable=False)
     user = relationship("User", back_populates="tokens")
     expire = Column(Date)
