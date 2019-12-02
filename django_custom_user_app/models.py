@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date
 from django.conf import settings
 from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey, event
 from sqlalchemy.ext.declarative import declarative_base
@@ -29,6 +30,8 @@ def class_attrs_to_dict(in_object, attrs):
     attrs_dict = {}
     for attr in attrs:
         attrs_dict[attr] = getattr(in_object, attr)
+        if isinstance(attrs_dict[attr], date):
+            attrs_dict[attr] = str(attrs_dict[attr])
     return attrs_dict
 
 
