@@ -2,7 +2,7 @@ import sqlite3
 from django.conf import settings
 from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey, event
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 
 __all__ = ['Session', 'User', 'Country']
 
@@ -53,6 +53,7 @@ class User(Base):
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(50), nullable=False)
     country_id = Column(ForeignKey('country.id'))
+    tokens = relationship("Token", back_populates="user")
 
     def __repr__(self):
         return f'{self.first_name} {self.last_name}'
@@ -60,3 +61,13 @@ class User(Base):
     def as_dict(self):
         fields = ['id', 'first_name', 'last_name', 'middle_name', 'birth_date', 'email']
         return class_attrs_to_dict(self, fields)
+
+
+class Token(Base):
+    __tablename__ = 'token'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    token = Column(String(50))
+    user_id = Column(ForeignKey('user.id'))
+    user = relationship("User", back_populates="tokens")
+    expire = Column(Date)
