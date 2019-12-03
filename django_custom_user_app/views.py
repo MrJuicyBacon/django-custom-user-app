@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth.hashers import check_password
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from .models import User, Token, Session as DbSession
 
@@ -45,3 +45,23 @@ def auth(request):
     }
 
     return create_response(response_data)
+
+
+@require_GET
+def profile(request, user_id):
+    # Get current user
+    if user_id == 'me':
+        if request.custom_user is None:
+            return create_response({'error': 'You are not logged in or auth_token is not valid.'}, 403)
+        user = request.custom_user
+    # Get user by user id
+    else:
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            return create_response({'error': 'Unable to parse given user id.'}, 400)
+        user = DbSession.query(User).get(user_id)
+
+    if user is not None:
+        return create_response({'user': user.as_dict()})
+    return create_response({'error': 'Unable to find user with given user id.'}, 400)
