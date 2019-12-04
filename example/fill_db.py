@@ -1,8 +1,12 @@
 import os
 from random import randrange
 from datetime import date, timedelta
-from django.contrib.auth.hashers import make_password
+
+# Set django settings module
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_custom_user.settings')
+
 from django_custom_user_app.models import User, Country, Session, Base, engine
+from django.contrib.auth.hashers import make_password
 
 
 def random_date(start, end):

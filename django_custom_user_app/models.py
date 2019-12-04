@@ -8,11 +8,52 @@ from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 __all__ = ['Session', 'User', 'Country']
 
 # DB initialization from django settings
-# TODO: Add MySQL and PostgreSQL support
+DB_PROTOCOLS = {
+    'django.db.backends.mysql': 'mysql',
+    'django.db.backends.postgresql_psycopg2': 'postgres',
+}
+
 try:
-    db_uri = 'sqlite:///{}'.format(settings.DATABASES['default']['NAME'])
+    db_django_engine = settings.DATABASES['default']['ENGINE']
 except (KeyError, AttributeError):
-    raise ValueError('Unable to determine current database')
+    raise ValueError('Unable to determine current database engine')
+
+# Set db uri from django settings file
+if db_django_engine == 'django.db.backends.sqlite3':
+    try:
+        db_uri = 'sqlite:///{}'.format(settings.DATABASES['default']['NAME'])
+    except (KeyError, AttributeError):
+        raise ValueError('Unable to determine current database')
+elif db_django_engine in DB_PROTOCOLS:
+    # Get main db variables from Django settings
+    try:
+        username = settings.DATABASES['default']['USER']
+        db = settings.DATABASES['default']['NAME']
+        host = settings.DATABASES['default']['HOST']
+    except (KeyError, AttributeError):
+        raise ValueError('Unable to get main database variables')
+
+    # Get password and port variables from Django settings
+    try:
+        password = settings.DATABASES['default']['PASSWORD']
+    except (KeyError, AttributeError):
+        password = None
+    try:
+        port = settings.DATABASES['default']['PORT']
+    except (KeyError, AttributeError):
+        port = None
+
+    # Create db uri
+    db_uri = '{}://{}'.format(DB_PROTOCOLS[db_django_engine], username)
+    if password is not None and len(password):
+        db_uri += ':{}'.format(password)
+    db_uri += '@{}'.format(host)
+    if port is not None and len(port):
+        db_uri += ':{}'.format(port)
+    db_uri += '/{}'.format(db)
+else:
+    raise AttributeError('Unsupported database type: "{}"'.format(db_django_engine))
+
 engine = create_engine(db_uri)
 Base = declarative_base()
 session_factory = sessionmaker(bind=engine)
@@ -54,7 +95,7 @@ class User(Base):
     middle_name = Column(String(50))
     birth_date = Column(Date)
     email = Column(String(50), nullable=False, unique=True)
-    password = Column(String(50), nullable=False)
+    password = Column(String(100), nullable=False)
     country_id = Column(ForeignKey('country.id'))
     tokens = relationship("Token", back_populates="user")
 
