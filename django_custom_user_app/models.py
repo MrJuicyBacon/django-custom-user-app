@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Date, ForeignKey,
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 
-__all__ = ['Session', 'User', 'Country']
+__all__ = ['Session', 'User', 'Country', 'Token']
 
 # DB initialization from django settings
 DB_PROTOCOLS = {
