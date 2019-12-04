@@ -103,7 +103,7 @@ class User(Base):
         return f'{self.first_name} {self.last_name}'
 
     def as_dict(self):
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'birth_date', 'email']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'birth_date', 'email', 'country_id']
         return class_attrs_to_dict(self, fields)
 
 
